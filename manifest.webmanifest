@@ -1,6 +1,6 @@
 {
-  "name": "Boerenbridge | Farmer’s Bridge",
-  "short_name": "Boerenbridge",
+  "name": "BoerenBridge | Farmer’s Bridge",
+  "short_name": "BoerenBridge",
   "description": "Dutch-American Farmer’s Bridge scorekeeper",
   "start_url": "./",
   "scope": "./",
