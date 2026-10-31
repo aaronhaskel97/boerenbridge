@@ -121,7 +121,7 @@ header .topnav{position:relative;z-index:2;margin-right:78px}
 
 /* v11: colored and consistently aligned suit labels on the live scorecard */
 .sectionrow .score-suit{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;margin-right:10px;vertical-align:middle;font:700 25px/1 Georgia,serif;color:#223E64}
-.sectionrow .score-suit-1,.sectionrow .score-suit-2{color:#C83E50}
+.sectionrow .score-suit-1,.sectionrow .score-suit-2{color:#AE1C28!important}
 .sectionrow .score-suit-4{color:#9361C8}
 .sectionrow .score-suit-4 .no-trump-symbol{display:block;width:27px;height:27px;vertical-align:middle}
 .sectionrow .score-suit-name{display:inline-block;vertical-align:middle;line-height:29px}
@@ -154,8 +154,30 @@ function undoLastBid(){let h=current();h.step=state.players.length-1;h.bids[h.de
 }
 const SUIT_COLORS=['#F1F5FC','#F06B75','#F06B75','#F1F5FC','#9361C8'];
 function drawSuitRow(ctx,x,centerY,size,step){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold ${size}px Georgia,serif`;for(let i=0;i<4;i++){ctx.fillStyle=SUIT_COLORS[i];ctx.fillText(SUITS[i][1],x+i*step+size/2,centerY)}drawNoTrump(ctx,x+4*step,centerY-size/2,size);ctx.restore()}
-function drawSuitLabel(ctx,suit,x,y,height){ctx.save();const center=y+height/2;ctx.textBaseline='middle';ctx.textAlign='left';if(suit===4){drawNoTrump(ctx,x+4,center-13,26)}else{ctx.fillStyle=['#223E64','#C83E50','#C83E50','#223E64'][suit];ctx.font='bold 25px Georgia,serif';ctx.fillText(SUITS[suit][1],x+4,center)}ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';ctx.fillText(SUITS[suit][0],x+42,center);ctx.restore()}
-function drawNoTrump(ctx,x,y,size){ctx.save();ctx.translate(x,y);const k=size/64;ctx.scale(k,k);ctx.strokeStyle='#9361C8';ctx.fillStyle='#9361C8';ctx.lineWidth=5;ctx.font='900 43px Arial,sans-serif';ctx.textAlign='center';ctx.fillText('T',32,46);ctx.beginPath();ctx.arc(32,32,26,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(13,51);ctx.lineTo(51,13);ctx.stroke();ctx.restore();}
+// Center each glyph by its measured ink bounds, rather than its font baseline.
+function drawCenteredGlyph(ctx,glyph,x,centerY,font,color){
+ ctx.save();ctx.font=font;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+ const m=ctx.measureText(glyph);
+ const ascent=m.actualBoundingBoxAscent||18,descent=m.actualBoundingBoxDescent||0;
+ ctx.fillStyle=color;ctx.fillText(glyph,x,centerY+(ascent-descent)/2);
+ ctx.restore();
+}
+function drawSuitLabel(ctx,suit,x,y,height){
+ ctx.save();const center=y+height/2;
+ if(suit===4){drawNoTrump(ctx,x+4,center-14,28,true)}
+ else drawCenteredGlyph(ctx,SUITS[suit][1],x+4,center,'bold 25px Georgia,serif',['#223E64','#C83E50','#C83E50','#223E64'][suit]);
+ drawCenteredGlyph(ctx,SUITS[suit][0],x+42,center,'bold 18px system-ui','#142D4E');
+ ctx.restore();
+}
+function drawNoTrump(ctx,x,y,size,rainbow=false){
+ ctx.save();ctx.translate(x,y);const k=size/64;ctx.scale(k,k);
+ const ink=rainbow?ctx.createLinearGradient(6,6,58,58):'#9361C8';
+ if(rainbow){[['0','#E84855'],['0.2','#F49B32'],['0.4','#F4D35E'],['0.6','#39B980'],['0.8','#438CE3'],['1','#A15ACB']].forEach(([at,color])=>ink.addColorStop(Number(at),color))}
+ ctx.strokeStyle=ink;ctx.fillStyle=ink;ctx.lineWidth=5;ctx.lineCap='round';
+ ctx.font='900 43px Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText('T',32,46);
+ ctx.beginPath();ctx.arc(32,32,26,0,Math.PI*2);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(13,51);ctx.lineTo(51,13);ctx.stroke();ctx.restore();
+}
 function exportScorecard(){
  const rows=state.history.filter(h=>h.confirmed),n=state.players.length;
  if(!rows.length){alert('Score a hand before saving the scorecard.');return}
