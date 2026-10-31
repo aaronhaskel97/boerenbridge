@@ -1,12 +1,12 @@
 {
-  "name": "BoerenBridge | Farmer’s Bridge",
+  "name": "BoerenBridge | Farmer\u2019s Bridge",
   "short_name": "BoerenBridge",
-  "description": "Dutch-American Farmer’s Bridge scorekeeper",
+  "description": "Dutch-American Farmer\u2019s Bridge scorekeeper",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f6f0",
-  "theme_color": "#163f32",
+  "background_color": "#0B1F38",
+  "theme_color": "#142D4E",
   "icons": [
     {
       "src": "./icon-192.png",
