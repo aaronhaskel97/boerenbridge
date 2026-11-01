@@ -242,10 +242,10 @@ function downloadScorecard(details={}){
  drawSuitRow(ctx,suitX,73,suitSize,suitStep);
   drawDutchRibbon(ctx,width);
  ctx.fillStyle='#EAF0F7';ctx.fillRect(0,102,width,headerH-102);
- if(detailText){ctx.fillStyle='#314F73';ctx.font='15px system-ui';ctx.fillText(detailText,pad,162)}
- ctx.fillStyle='#142D4E';ctx.font='bold 16px system-ui';ctx.fillText('HAND',pad,134);
+ if(detailText){ctx.save();ctx.fillStyle='#314F73';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(detailText,width/2,133);ctx.restore()}
+ ctx.fillStyle='#142D4E';ctx.font='bold 16px system-ui';ctx.fillText('HAND',pad,headerH-20);
  const truncate=(str,max)=>{while(ctx.measureText(str).width>max&&str.length>1)str=str.slice(0,-2)+'…';return str};
- for(let i=0;i<n;i++){ctx.fillStyle=colorFor(i);ctx.fillRect(left+i*col+8,117,9,18);ctx.fillStyle='#142D4E';ctx.fillText(truncate(state.players[i],col-30),left+i*col+23,134)}
+ for(let i=0;i<n;i++){ctx.fillStyle=colorFor(i);ctx.fillRect(left+i*col+8,headerH-37,9,18);ctx.fillStyle='#142D4E';ctx.fillText(truncate(state.players[i],col-30),left+i*col+23,headerH-20)}
  let y=headerH,scores=state.players.map(()=>0);lastSuit=-1;
  for(const h of rows){
   if(h.suit!==lastSuit){ctx.fillStyle='#DCE7F4';ctx.fillRect(0,y,width,groupH);ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';drawSuitLabel(ctx,h.suit,pad,y,groupH);y+=groupH;lastSuit=h.suit}
