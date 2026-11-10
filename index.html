@@ -107,7 +107,15 @@ header h1{white-space:normal}
 header .topnav{position:relative;z-index:2;margin-right:78px}
 .dutch-ribbon{right:-60px;top:14px;width:195px;height:63px;transform:rotate(45deg);z-index:1}
 @media(max-width:760px){header{padding-right:18px}.brand-suits{gap:12px}header .topnav{margin-right:0;padding-right:40px}.dutch-ribbon{right:-70px;top:12px;width:170px;height:54px}}
+.setup-picker{width:min(100%,230px);height:120px;margin:6px 0 10px}
+.setup-picker:before{top:40px;height:40px}
+.setup-picker .bid-wheel{height:120px}
+.setup-picker .bid-option,.setup-picker .bid-wheel-spacer{height:40px}
+.setup-picker .bid-option,.setup-picker .bid-option.selected{font-size:18px;padding:0 8px}
+.setup-picker .bid-option span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 /* Compact wheels for trick entry */
+
 .trick-wheel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:18px 0}
 .trick-wheel-card{border:1px solid #D8E1EC;background:#FAFBFE;border-radius:12px;padding:12px;text-align:center;min-width:0}
 .trick-wheel-card label{display:block;font-size:14px;font-weight:700;overflow-wrap:anywhere}
@@ -149,9 +157,88 @@ header>div:nth-child(2){display:block;min-width:0;max-width:100%}
 @media(max-width:370px){.brand-bottom{flex-wrap:wrap}.brand-bottom .brand-suits-box{margin-top:2px}}
 .export-dialog label{display:block;font-weight:700;margin:12px 0 5px}.export-dialog input{width:100%;font-size:16px}.export-dialog .row{justify-content:flex-start}
 </style></head><body><header><div class="dutch-ribbon" aria-label="Dutch flag"></div><div><div class="brand-header"><h1><span class="brand-title">BoerenBridge</span></h1><div class="brand-bottom"><span class="brand-subtitle">Farmer’s Bridge</span><div class="brand-suits brand-suits-box"><span>♠</span><span>♥</span><span>♦</span><span>♣</span><span class="nt-logo"><img class="no-trump-symbol" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20transform%3D%22translate(32%2032)%20scale(.83)%20translate(-32%20-32)%22%20fill%3D%22%23939DAD%22%20d%3D%22M32%204%20C26%2014%208%2027%208%2040%20C8%2051%2021%2055%2029%2045%20L26%2058%20H38%20L35%2045%20C43%2055%2056%2051%2056%2040%20C56%2027%2038%2014%2032%204%20Z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2047%20L47%2017%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="No Trump"></span></div></div></div></div><div class="topnav" id="nav"></div></header><main class="shell" id="app"></main><div id="splash" aria-label="BoerenBridge is opening"><img src="./icon-192.png" alt="BoerenBridge logo"><div class="splash-name">BoerenBridge</div></div><script>
-const SUITS=[['Spades','♠'],['Hearts','♥'],['Diamonds','♦'],['Clubs','♣'],['No Trump',`<img class="no-trump-symbol" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20transform%3D%22translate(32%2032)%20scale(.83)%20translate(-32%20-32)%22%20fill%3D%22%23101820%22%20d%3D%22M32%204%20C26%2014%208%2027%208%2040%20C8%2051%2021%2055%2029%2045%20L26%2058%20H38%20L35%2045%20C43%2055%2056%2051%2056%2040%20C56%2027%2038%2014%2032%204%20Z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2047%20L47%2017%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="No Trump">`]];const KEY='farmers-bridge-v3';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!state.players)state=null;let view='play',error='';const PALETTE=['#2878C8','#E05B4D','#1B9467','#A15BC5','#DB941B','#D05293','#168B9C','#6D7792','#835C3B','#738C25'];const colorFor=i=>(state?.colors?.[i]||PALETTE[i%PALETTE.length]);const dot=i=>``;const seatTint=i=>`background:${colorFor(i)}18;border-color:${colorFor(i)}88;`;const $=id=>document.getElementById(id),save=()=>localStorage.setItem(KEY,JSON.stringify(state)),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function btn(label,fn,cls=''){return `<button class="${cls}" onclick="${fn}">${label}</button>`}function hand(){return state.start-state.round}function dealer(){return (state.firstDealer+state.handIndex+Math.floor(state.handIndex/state.start)*(state.start%state.players.length===0?1:0))%state.players.length}function order(){return Array.from({length:state.players.length},(_,i)=>(dealer()+i+1)%state.players.length)}function current(){return state.history[state.history.length-1]}function totals(){let t=state.players.map(()=>0);state.history.filter(h=>h.confirmed).forEach(h=>h.tricks.forEach((n,i)=>t[i]+=n+(n===h.bids[i]?10:0)));return t}function asteriskHelp(){return '<span class="asterisk-help" tabindex="0" role="button" aria-label="What does the asterisk mean?" data-tip="The asterisk is meaningless, but indicates anger, which we take very seriously.">ⓘ</span>'}function partialRemoval(extra,rank,suit){if(!extra)return '';if(suit===4)return `Remove ${extra} random ${rank}s (No Trump).`;let kept=4-extra;return `Remove ${extra} ${rank}${extra===1?'':'s'} from the non-trump suits; keep the ${SUITS[suit][0]} ${rank}${kept>1?' and '+(kept-1)+' other '+rank+(kept-1===1?'':'s'):''}.`;}function deck(){let needed=state.players.length*state.start,removed=52-needed,whole=Math.floor(removed/4),extra=removed%4,ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];return {needed,removed,desc:whole?`Remove all ${ranks.slice(0,whole).join(', ')}s${extra?`, plus ${extra} ${extra===1?'card':'cards'} of rank ${ranks[whole]}`:''}.`:(extra?`Remove ${extra} ${extra===1?'card':'cards'} of rank 2.`:'Use the full deck.')}}function render(){const nav=$('nav');nav.innerHTML=`${btn('Play',"view='play';render()",'')} ${btn('Scorecard',state?"view='score';render()":"alert('Start a game to view the scorecard.')",'')} ${btn('New Game','resetGame()','reset-button')} ${isStandalone()?'' : btn('📲 Install App','installApp()')}`;if(!state){setup();return}if(view==='score'){scorecard();appendSimulationFooter();return}let s=state;let h=current();if(s.phase==='bid')bidScreen(h);else if(s.phase==='tricks')tricksScreen(h);else if(s.phase==='review')review(h);else if(s.phase==='intermission')intermission();else if(s.phase==='finished')finished();appendSimulationFooter();}function appendSimulationFooter(){if(!state||state.phase==='finished')return;const footer=document.createElement('div');footer.className='simulation-footer';footer.innerHTML=btn('Simulate remaining hands','showSimulationOptions()','simulate-link');$('app').appendChild(footer)}function setup(){let saved=JSON.parse(sessionStorage.getItem('fbsetup')||'{}');let n=saved.n||4,st=saved.st||8;let html=`<div class="card"><h2>Start a new game</h2><p class="muted">Set up your players and deck, then let the scorekeeper handle the rest.</p><div class="split"><div><div class="field"><label>Number of players</label><input id="numPlayers" type="number" min="2" max="20" value="${n}" oninput="updateSetup()"></div><div class="table-caption">Seating order · clockwise</div><div id="names" class="seating-circle setup-circle"></div><div class="field"><label>Who deals first?</label><select id="firstDealer"></select></div></div><div><div class="field"><label>Cards in the first hand</label><input id="startCards" type="number" min="1" max="26" value="${st}" oninput="updateSetup()"><div class="subtle">8 is the usual starting point.</div></div><div id="deckAdvice" class="note"></div></div></div><div id="setupError"></div>${btn('Start game →','startGame()')}</div>`;$('app').innerHTML=html;updateSetup()}function updateSetup(){let n=Math.max(2,Math.min(20,Number($('numPlayers').value)||4)),st=Number($('startCards').value)||8,prev=Array.from(document.querySelectorAll('.playerName')).map(x=>x.value),prevColors=Array.from(document.querySelectorAll('.playerColor')).map(x=>x.value),oldDealer=Number($('firstDealer').value)||0;$('names').innerHTML=Array.from({length:n},(_,i)=>`<div class="seat" style="${seatPosition(i,n)};background:${prevColors[i]||PALETTE[i%PALETTE.length]}18;border-color:${prevColors[i]||PALETTE[i%PALETTE.length]}88"><label>Player ${i+1}</label><input class="playerName" type="text" value="${esc(prev[i]||'')}" placeholder="Name" oninput="refreshDealer()" onkeydown="if(event.key==='Enter'){event.preventDefault();startGame()}"><select class="playerColor" aria-label="Color for player ${i+1}" onchange="this.closest('.seat').style.background=this.value+'18';this.closest('.seat').style.borderColor=this.value+'88'">${PALETTE.map((c,j)=>`<option value="${c}" ${c===(prevColors[i]||PALETTE[i%PALETTE.length])?'selected':''}>${['Blue','Coral','Green','Purple','Gold','Pink','Teal','Slate','Brown','Olive'][j]}</option>`).join('')}</select></div>`).join('');refreshDealer(oldDealer);let needed=n*st,removed=52-needed;if(needed>52||st<1){$('deckAdvice').innerHTML='<b>Too many cards for a 52-card deck.</b>';return}let whole=Math.floor(removed/4),extra=removed%4,ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];let desc=whole?`Remove all ${ranks.slice(0,whole).join(', ')}s${extra?` and ${extra} ${extra===1?'card':'cards'} from the ${ranks[whole]}s`:''}.`:(extra?`Remove ${extra} 2s.`:'Use the full deck.');let candidates=Array.from({length:Math.floor(52/n)},(_,i)=>i+1).filter(x=>(52-n*x)%4===0).sort((a,b)=>Math.abs(a-st)-Math.abs(b-st)).slice(0,3);$('deckAdvice').innerHTML=`<b>Deck: ${needed} cards</b><br>${desc}${extra?`<br><span class="subtle">When playing a trump suit, leave that suit's ${ranks[whole]} in the deck. For No Trump, remove ${extra} random ${ranks[whole]}${extra===1?'':'s'}.</span>`:''}<br><span class="subtle">${extra?'To keep all four suits represented in each rank, try starting with '+candidates.join(', ')+' cards per player.':'All four suits are represented in each remaining rank.'}</span>`}function seatPosition(i,n){let a=2*Math.PI*i/n-Math.PI/2;return `left:${(50+39*Math.cos(a)).toFixed(3)}%;top:${(50+39*Math.sin(a)).toFixed(3)}%`}
+const SUITS=[['Spades','♠'],['Hearts','♥'],['Diamonds','♦'],['Clubs','♣'],['No Trump',`<img class="no-trump-symbol" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20transform%3D%22translate(32%2032)%20scale(.83)%20translate(-32%20-32)%22%20fill%3D%22%23101820%22%20d%3D%22M32%204%20C26%2014%208%2027%208%2040%20C8%2051%2021%2055%2029%2045%20L26%2058%20H38%20L35%2045%20C43%2055%2056%2051%2056%2040%20C56%2027%2038%2014%2032%204%20Z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2047%20L47%2017%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="No Trump">`]];const KEY='farmers-bridge-v3';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!state.players)state=null;let view='play',error='';const PALETTE=['#2878C8','#E05B4D','#1B9467','#A15BC5','#DB941B','#D05293','#168B9C','#6D7792','#835C3B','#738C25'];const colorFor=i=>(state?.colors?.[i]||PALETTE[i%PALETTE.length]);const dot=i=>``;const seatTint=i=>`background:${colorFor(i)}18;border-color:${colorFor(i)}88;`;const $=id=>document.getElementById(id),save=()=>localStorage.setItem(KEY,JSON.stringify(state)),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function btn(label,fn,cls=''){return `<button class="${cls}" onclick="${fn}">${label}</button>`}function hand(){return state.start-state.round}function dealer(){
+ const n=state.players.length;
+ const rotation=index=>index+Math.floor(index/state.start)*(state.start%n===0?1:0);
+ return (state.firstDealer+rotation(state.handIndex-(state.dealerAnchor??0)))%n;
+}function order(){return Array.from({length:state.players.length},(_,i)=>(dealer()+i+1)%state.players.length)}function current(){return state.history[state.history.length-1]}function initRoster(){
+ if(state.roster)return;
+ state.roster=state.players.map((name,i)=>({name,color:colorFor(i)}));
+ state.activeIds=state.roster.map((_,i)=>i);
+}
+function scoreData(){
+ initRoster();
+ const scores=state.roster.map(()=>0),suits=state.roster.map(()=>new Set());
+ const rows=state.history.filter(h=>h.confirmed).map(h=>{
+  const cells=state.roster.map(()=>null);
+  (h.playerIds??state.originalIds??state.activeIds).forEach((id,i)=>{
+   scores[id]+=h.tricks[i]+(h.tricks[i]===h.bids[i]?10:0);
+   suits[id].add(h.suit);
+   cells[id]={bid:h.bids[i]+(i===h.dealer&&h.asterisk?'*':''),score:scores[id]};
+  });
+  return {suit:h.suit,cards:h.cards,cells};
+ });
+ return {rows,scores,suits};
+}
+function asteriskHelp(){return '<span class="asterisk-help" tabindex="0" role="button" aria-label="What does the asterisk mean?" data-tip="The asterisk is meaningless, but indicates anger, which we take very seriously.">ⓘ</span>'}function partialRemoval(extra,rank,suit){if(!extra)return '';if(suit===4)return `Remove ${extra} random ${rank}s (No Trump).`;let kept=4-extra;return `Remove ${extra} ${rank}${extra===1?'':'s'} from the non-trump suits; keep the ${SUITS[suit][0]} ${rank}${kept>1?' and '+(kept-1)+' other '+rank+(kept-1===1?'':'s'):''}.`;}function deck(){let needed=state.players.length*state.start,removed=52-needed,whole=Math.floor(removed/4),extra=removed%4,ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];return {needed,removed,desc:whole?`Remove all ${ranks.slice(0,whole).join(', ')}s${extra?`, plus ${extra} ${extra===1?'card':'cards'} of rank ${ranks[whole]}`:''}.`:(extra?`Remove ${extra} ${extra===1?'card':'cards'} of rank 2.`:'Use the full deck.')}}function render(){const nav=$('nav');nav.innerHTML=`${btn('Play',"view='play';render()",'')} ${btn('Scorecard',state?"view='score';render()":"alert('Start a game to view the scorecard.')",'')} ${btn('New Game','resetGame()','reset-button')} ${isStandalone()?'' : btn('📲 Install App','installApp()')}`;if(!state){setup();return}if(view==='score'){scorecard();appendSimulationFooter();return}let s=state;let h=current();if(s.phase==='bid')bidScreen(h);else if(s.phase==='tricks')tricksScreen(h);else if(s.phase==='review')review(h);else if(s.phase==='intermission')intermission();else if(s.phase==='finished')finished();appendSimulationFooter();}function appendSimulationFooter(){if(!state||state.phase==='finished')return;const footer=document.createElement('div');footer.className='simulation-footer';footer.innerHTML=btn('Simulate remaining hands','showSimulationOptions()','simulate-link');$('app').appendChild(footer)}function setup(){let saved=JSON.parse(sessionStorage.getItem('fbsetup')||'{}');let n=saved.n||4,st=saved.st||8;let html=`<div class="card"><h2>Start a new game</h2><p class="muted">Set up your players and deck, then let the scorekeeper handle the rest.</p><div class="split"><div><div class="field"><label>Number of players</label>${setupPicker('numPlayers','Number of players',2,20,n)}</div><div class="table-caption">Seating order · clockwise</div><div id="names" class="seating-circle setup-circle"></div><div class="field"><label>Who deals first?</label>${setupPicker('firstDealer','Who deals first?',0,-1,0)}</div></div><div><div class="field"><label>Cards in the first hand</label>${setupPicker('startCards','Cards in the first hand',1,26,st)}<div class="subtle">8 is the usual starting point.</div></div><div id="deckAdvice" class="note"></div></div></div><div id="setupError"></div>${btn('Start game →','startGame()')}</div>`;$('app').innerHTML=html;initSetupPickers();updateSetup()}function updateSetup(){let n=Math.max(2,Math.min(20,Number($('numPlayers').value)||4)),st=Number($('startCards').value)||8,prev=Array.from(document.querySelectorAll('.playerName')).map(x=>x.value),prevColors=Array.from(document.querySelectorAll('.playerColor')).map(x=>x.value),oldDealer=Number($('firstDealer').value)||0;$('names').innerHTML=Array.from({length:n},(_,i)=>`<div class="seat" style="${seatPosition(i,n)};background:${prevColors[i]||PALETTE[i%PALETTE.length]}18;border-color:${prevColors[i]||PALETTE[i%PALETTE.length]}88"><label>Player ${i+1}</label><input class="playerName" type="text" value="${esc(prev[i]||'')}" placeholder="Name" oninput="refreshDealer()" onkeydown="if(event.key==='Enter'){event.preventDefault();startGame()}"><select class="playerColor" aria-label="Color for player ${i+1}" onchange="this.closest('.seat').style.background=this.value+'18';this.closest('.seat').style.borderColor=this.value+'88'">${PALETTE.map((c,j)=>`<option value="${c}" ${c===(prevColors[i]||PALETTE[i%PALETTE.length])?'selected':''}>${['Blue','Coral','Green','Purple','Gold','Pink','Teal','Slate','Brown','Olive'][j]}</option>`).join('')}</select></div>`).join('');refreshDealer(oldDealer);let needed=n*st,removed=52-needed;if(needed>52||st<1){$('deckAdvice').innerHTML='<b>Too many cards for a 52-card deck.</b>';return}let whole=Math.floor(removed/4),extra=removed%4,ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];let desc=whole?`Remove all ${ranks.slice(0,whole).join(', ')}s${extra?` and ${extra} ${extra===1?'card':'cards'} from the ${ranks[whole]}s`:''}.`:(extra?`Remove ${extra} 2s.`:'Use the full deck.');let candidates=Array.from({length:Math.floor(52/n)},(_,i)=>i+1).filter(x=>(52-n*x)%4===0).sort((a,b)=>Math.abs(a-st)-Math.abs(b-st)).slice(0,3);$('deckAdvice').innerHTML=`<b>Deck: ${needed} cards</b><br>${desc}${extra?`<br><span class="subtle">When playing a trump suit, leave that suit's ${ranks[whole]} in the deck. For No Trump, remove ${extra} random ${ranks[whole]}${extra===1?'':'s'}.</span>`:''}<br><span class="subtle">${extra?'To keep all four suits represented in each rank, try starting with '+candidates.join(', ')+' cards per player.':'All four suits are represented in each remaining rank.'}</span>`}function seatPosition(i,n){let a=2*Math.PI*i/n-Math.PI/2;return `left:${(50+39*Math.cos(a)).toFixed(3)}%;top:${(50+39*Math.sin(a)).toFixed(3)}%`}
 function tableCircle(h,active){let n=state.players.length;return `<div class="seating-circle live-circle">${state.players.map((p,i)=>`<div class="seat ${i===h.dealer?'dealer-seat':''} ${i===active?'active-seat':''}" style="${seatPosition(i,n)};${seatTint(i)}"><span class="seat-name">${dot(i)}${esc(p)}</span>${h.bids[i]===null?`<span class="seat-detail">${i===h.dealer?'Dealer · ':''}Waiting</span>`:`<span class="seat-bid" aria-label="Bid ${h.bids[i]}">${h.bids[i]}${i===h.dealer&&h.asterisk?'<sup class="asterisk-help" tabindex="0" role="button" aria-label="What does the asterisk mean?" data-tip="The asterisk is meaningless, but indicates anger, which we take very seriously.">*</sup>':''}</span><span class="seat-detail">${i===h.dealer?'Dealer · ':''}Bid</span>`}</div>`).join('')}<div class="table-center">${h.cards} CARDS</div></div><div class="table-legend">Highlighted border = bidding now</div>`}
-function refreshDealer(sel){let el=$('firstDealer');if(!el)return;let chosen=sel??(Number(el.value)||0);el.innerHTML=Array.from(document.querySelectorAll('.playerName')).map((x,i)=>`<option value="${i}" ${i===chosen?'selected':''}>${esc(x.value.trim()||'Player '+(i+1))}</option>`).join('')}function startGame(){let players=Array.from(document.querySelectorAll('.playerName')).map((x,i)=>x.value.trim()||'Player '+(i+1)),start=Number($('startCards').value),n=players.length;if(!Number.isInteger(start)||start<1||n*start>52){$('setupError').innerHTML='<p class="error">Choose a valid starting hand size for a 52-card deck.</p>';return}state={players,colors:Array.from(document.querySelectorAll('.playerColor')).map(x=>x.value),start,firstDealer:Number($('firstDealer').value),handIndex:0,round:0,suit:0,phase:'bid',history:[]};newHand();view='play';save();render()}function newHand(){state.history.push({suit:state.suit,cards:hand(),dealer:dealer(),bids:state.players.map(()=>null),tricks:state.players.map(()=>null),asterisk:false,confirmed:false,step:0});state.phase='bid'}function heading(h){return `<div class="row"><span class="pill">${SUITS[h.suit][0]}</span><span class="pill">${h.cards} ${h.cards===1?'card':'cards'} per player</span><span class="pill">Dealer: ${esc(state.players[h.dealer])}</span></div>`}function bidScreen(h){let idx=order()[h.step],isDealer=idx===h.dealer,forbidden=h.cards-h.bids.reduce((a,b)=>a+(b??0),0);$('app').innerHTML=`<div class="split"><section class="card">${heading(h)}<h2 style="margin-top:22px">${esc(state.players[idx])}, what's your bid?</h2><p class="muted">Bid the number of tricks you expect to win.</p><div class="field"><label>Tricks bid (0–${h.cards})</label>${bidWheel(h,isDealer,forbidden)}</div>${isDealer?`<div class="check"><label class="check" for="screwed"><input type="checkbox" id="screwed" ${h.asterisk?'checked':''}> Add asterisk (*)</label> ${asteriskHelp()}</div><p class="subtle">${h.cards===1?'The dealer restriction is lifted for one-card hands.':forbidden>=0&&forbidden<=h.cards?`You cannot bid ${forbidden} (total bids cannot equal ${h.cards}).`:'No bid in range would make the total equal the cards dealt.'}</p>`:''}<div id="message"></div><div class="row">${btn('← Back','backBid()','secondary')}${btn('Submit bid →','submitBid()')}</div></section><section class="card"><h2>Players at the table</h2>${tableCircle(h,idx)}<h3>Bidding so far</h3>${bidChips(h)}<p class="muted">Total bids: <strong>${h.bids.reduce((a,b)=>a+(b??0),0)}</strong> / ${h.cards} tricks</p><p class="subtle">Bidding starts left of the dealer. A bid can be changed until the next player submits theirs.</p></section></div>`;initBidWheel()}let selectedBid=0,bidScrollTimer=null;
+function setupPicker(id,label,min,max,value){
+  value=max>=min?Math.max(min,Math.min(max,Math.round(Number(value)||min))):0;
+  const labels=Array.from({length:max-min+1},(_,i)=>min+i);
+  return `<input type="hidden" id="${id}" value="${value}"><div class="bid-picker setup-picker"><div id="${id}Wheel" class="bid-wheel" role="listbox" aria-label="${label}" tabindex="0" data-field="${id}" data-min="${min}">${setupOptions(labels,id)}</div></div>`;
+}
+function setupOptions(labels,id){
+  return `<div class="bid-wheel-spacer"></div>${labels.map((label,i)=>`<div id="${id}Option${i}" class="bid-option" role="option" aria-selected="false"><span>${esc(label)}</span></div>`).join('')}<div class="bid-wheel-spacer"></div>`;
+}
+function selectSetupOption(wheel,index,scroll=false){
+  const options=wheel.querySelectorAll('.bid-option');
+  if(!options.length)return;
+  index=Math.max(0,Math.min(options.length-1,index));
+  if(scroll)wheel.scrollTop=index*40;
+  options.forEach((option,i)=>{
+    option.classList.toggle('selected',i===index);
+    option.setAttribute('aria-selected',String(i===index));
+  });
+  wheel.setAttribute('aria-activedescendant',options[index].id);
+  const input=$(wheel.dataset.field);
+  const value=String(index+Number(wheel.dataset.min));
+  if(input.value===value)return;
+  input.value=value;
+  if(input.id!=='firstDealer')updateSetup();
+}
+function initSetupPickers(){
+  document.querySelectorAll('.setup-picker .bid-wheel').forEach(wheel=>{
+    const sync=()=>selectSetupOption(wheel,Math.round(wheel.scrollTop/40));
+    wheel.addEventListener('scroll',()=>{
+      clearTimeout(wheel.setupTimer);
+      wheel.setupTimer=setTimeout(sync,70);
+    },{passive:true});
+    wheel.addEventListener('click',event=>{
+      const option=event.target.closest('.bid-option');
+      if(option)selectSetupOption(wheel,[...wheel.querySelectorAll('.bid-option')].indexOf(option),true);
+    });
+    wheel.addEventListener('keydown',event=>{
+      const index=Math.round(wheel.scrollTop/40);
+      const moves={ArrowUp:index-1,ArrowDown:index+1,Home:0,End:wheel.querySelectorAll('.bid-option').length-1};
+      if(!Object.hasOwn(moves,event.key))return;
+      event.preventDefault();
+      selectSetupOption(wheel,moves[event.key],true);
+    });
+    selectSetupOption(wheel,Number($(wheel.dataset.field).value)-Number(wheel.dataset.min),true);
+  });
+}
+function refreshDealer(selected){
+  const wheel=$('firstDealerWheel');
+  const labels=[...document.querySelectorAll('.playerName')].map((input,i)=>input.value.trim()||'Player '+(i+1));
+  const options=wheel.querySelectorAll('.bid-option span');
+  if(options.length!==labels.length){
+    wheel.innerHTML=setupOptions(labels,'firstDealer');
+    selectSetupOption(wheel,selected??Number($('firstDealer').value),true);
+  }else{
+    options.forEach((option,i)=>{option.textContent=labels[i]});
+  }
+}
+function startGame(){document.querySelectorAll('.setup-picker .bid-wheel').forEach(wheel=>selectSetupOption(wheel,Math.round(wheel.scrollTop/40)));let players=Array.from(document.querySelectorAll('.playerName')).map((x,i)=>x.value.trim()||'Player '+(i+1)),start=Number($('startCards').value),n=players.length;if(!Number.isInteger(start)||start<1||n*start>52){$('setupError').innerHTML='<p class="error">Choose a valid starting hand size for a 52-card deck.</p>';return}state={players,colors:Array.from(document.querySelectorAll('.playerColor')).map(x=>x.value),start,firstDealer:Number($('firstDealer').value),handIndex:0,round:0,suit:0,phase:'bid',history:[]};newHand();view='play';save();render()}function newHand(){state.history.push({suit:state.suit,cards:hand(),dealer:dealer(),playerIds:(initRoster(),state.activeIds.slice()),bids:state.players.map(()=>null),tricks:state.players.map(()=>null),asterisk:false,confirmed:false,step:0});state.phase='bid'}function heading(h){return `<div class="row"><span class="pill">${SUITS[h.suit][0]}</span><span class="pill">${h.cards} ${h.cards===1?'card':'cards'} per player</span><span class="pill">Dealer: ${esc(state.players[h.dealer])}</span></div>`}function bidScreen(h){let idx=order()[h.step],isDealer=idx===h.dealer,forbidden=h.cards-h.bids.reduce((a,b)=>a+(b??0),0);$('app').innerHTML=`<div class="split"><section class="card">${heading(h)}<h2 style="margin-top:22px">${esc(state.players[idx])}, what's your bid?</h2><p class="muted">Bid the number of tricks you expect to win.</p><div class="field"><label>Tricks bid (0–${h.cards})</label>${bidWheel(h,isDealer,forbidden)}</div>${isDealer?`<div class="check"><label class="check" for="screwed"><input type="checkbox" id="screwed" ${h.asterisk?'checked':''}> Add asterisk (*)</label> ${asteriskHelp()}</div><p class="subtle">${h.cards===1?'The dealer restriction is lifted for one-card hands.':forbidden>=0&&forbidden<=h.cards?`You cannot bid ${forbidden} (total bids cannot equal ${h.cards}).`:'No bid in range would make the total equal the cards dealt.'}</p>`:''}<div id="message"></div><div class="row">${btn('← Back','backBid()','secondary')}${btn('Submit bid →','submitBid()')}</div></section><section class="card"><h2>Players at the table</h2>${tableCircle(h,idx)}<h3>Bidding so far</h3>${bidChips(h)}<p class="muted">Total bids: <strong>${h.bids.reduce((a,b)=>a+(b??0),0)}</strong> / ${h.cards} tricks</p><p class="subtle">Bidding starts left of the dealer. A bid can be changed until the next player submits theirs.</p></section></div>`;initBidWheel()}let selectedBid=0,bidScrollTimer=null;
 function bidWheel(h,isDealer,forbidden){
  const options=Array.from({length:h.cards+1},(_,i)=>i).filter(v=>!isDealer||h.cards===1||v!==forbidden);
  selectedBid=options[0];
@@ -168,7 +255,85 @@ function updateTrickWheel(w){const items=[...w.querySelectorAll('.bid-option')];
 function selectTrick(i,value){const w=document.querySelector(`.trick-wheel[data-i="${i}"]`);if(!w)return;w.dataset.selected=String(value);w.scrollTo({top:value*40,behavior:'smooth'});updateTrickWheel(w)}
 function trickValues(){return [...document.querySelectorAll('.trick-wheel')].map(w=>{const items=w.querySelectorAll('.bid-option');return Math.max(0,Math.min(items.length-1,Math.round(w.scrollTop/40)))})}
 function trickTotal(){const el=$('trickCount');if(el)el.textContent=`Tricks selected: ${trickValues().reduce((a,b)=>a+b,0)} / ${current().cards}`}
-function undoLastBid(){let h=current();h.step=state.players.length-1;h.bids[h.dealer]=null;state.phase='bid';save();render()}function submitTricks(){let h=current(),v=trickValues();if(v.reduce((a,b)=>a+b,0)!==h.cards){$('message').innerHTML=`<p class="error">The selected tricks must add up to exactly ${h.cards}.</p>`;return}h.tricks=v;state.phase='review';save();render()}function review(h){let before=totals();$('app').innerHTML=`<div class="card">${heading(h)}<h2 style="margin-top:20px">Confirm this hand</h2><div class="tablewrap"><table><thead><tr><th>Player</th><th>Bid</th><th>Tricks</th><th>Points</th><th>New total</th></tr></thead><tbody>${state.players.map((p,i)=>{let points=h.tricks[i]+(h.tricks[i]===h.bids[i]?10:0);return `<tr><td>${dot(i)}${esc(p)}</td><td>${h.bids[i]}${i===h.dealer&&h.asterisk?'*':''}</td><td>${h.tricks[i]}</td><td><b>+${points}</b></td><td>${before[i]+points}</td></tr>`}).join('')}</tbody></table></div><p class="muted">Exact bid earns a 10-point bonus, plus one point per trick won.</p><div class="row">${btn('← Edit tricks',"state.phase='tricks';save();render()",'secondary')}${btn('Confirm scores & continue →','confirmHand()')}</div></div>`}function confirmHand(){let h=current();h.confirmed=true;state.handIndex++;if(state.round<state.start-1){state.round++;newHand()}else{state.phase='intermission'}save();render()}function ranking(){let t=totals();return state.players.map((name,i)=>({name,index:i,score:t[i]})).sort((a,b)=>b.score-a.score)}function standings(){return ranking().map((p,i)=>`<div class="scoreline"><span>${i+1}. ${dot(p.index)}${esc(p.name)} ${i===0?'🏆':''}</span><strong>${p.score}</strong></div>`).join('')}function intermission(){let next=state.suit+1;$('app').innerHTML=`<div class="card"><span class="pill">${SUITS[state.suit][0]} complete</span><h2 style="margin-top:16px">Current standings</h2>${standings()}<div class="note">${next<5?`Next up: <b>${SUITS[next][1]} ${SUITS[next][0]}</b>`:'You have completed all five rounds!'}</div><div class="row">${next<5?btn('Continue to '+SUITS[next][0]+' →','continueSuit()'):''}${next<4?btn('Skip to No Trump →','skipToNoTrump()','secondary'):''}${btn('End game','endGame()','secondary')}</div></div>`}function continueSuit(){state.suit++;state.round=0;newHand();save();render()}function skipToNoTrump(){if(state.phase!=='intermission'||state.suit>=4)return;state.suit=4;state.round=0;newHand();save();render()}function endGame(){state.phase='finished';save();render()}function finished(){$('app').innerHTML=`<div class="card"><span class="pill">Game complete</span><h2 style="margin-top:16px">Final standings 🎉</h2>${standings()}<div class="row" style="margin-top:20px">${btn('Save scorecard as PNG','exportScorecard()')}${btn('View scorecard',"view='score';render()")}${btn('New game','resetGame()','secondary')}</div></div>`}function scorecard(){let confirmed=state.history.filter(h=>h.confirmed),scores=state.players.map(()=>0),groups=[];for(let s=0;s<5;s++){let rows=confirmed.filter(h=>h.suit===s);if(rows.length)groups.push({s,rows})}let html=`<div class="card"><div class="row" style="justify-content:space-between"><div><h2>Live scorecard</h2><p class="muted">Each cell shows bid – cumulative score. * marks a dealer asterisk.</p></div><div class="row">${btn('Save scorecard as PNG','exportScorecard()')}${btn('← Back to game',"view='play';render()",'secondary')}</div></div><div class="tablewrap"><table><thead><tr><th>Hand</th>${state.players.map(p=>`<th>${dot(state.players.indexOf(p))}${esc(p)}</th>`).join('')}</tr></thead><tbody>`;for(let g of groups){html+=`<tr class="sectionrow"><td colspan="${state.players.length+1}">${`<span class="score-suit score-suit-${g.s}">${SUITS[g.s][1]}</span><span class="score-suit-name">${SUITS[g.s][0]}</span>`}</td></tr>`;for(let h of g.rows){html+=`<tr><td>${h.cards} cards</td>`;for(let i=0;i<state.players.length;i++){scores[i]+=h.tricks[i]+(h.tricks[i]===h.bids[i]?10:0);html+=`<td>${h.bids[i]}${i===h.dealer&&h.asterisk?'*':''} – <b>${scores[i]}</b></td>`}html+='</tr>'}}html+=`<tr class="sectionrow"><td>Total</td>${scores.map(x=>`<td>${x}</td>`).join('')}</tr></tbody></table></div>${confirmed.length?'':'<p class="muted">No hands scored yet.</p>'}</div>`;html=`<div class="card"><h2>Standings</h2>${standings()}</div>`+html;$('app').innerHTML=html}function drawDutchRibbon(ctx,width){
+function undoLastBid(){let h=current();h.step=state.players.length-1;h.bids[h.dealer]=null;state.phase='bid';save();render()}function submitTricks(){let h=current(),v=trickValues();if(v.reduce((a,b)=>a+b,0)!==h.cards){$('message').innerHTML=`<p class="error">The selected tricks must add up to exactly ${h.cards}.</p>`;return}h.tricks=v;state.phase='review';save();render()}function review(h){const {scores}=scoreData(),before=state.activeIds.map(id=>scores[id]);$('app').innerHTML=`<div class="card">${heading(h)}<h2 style="margin-top:20px">Confirm this hand</h2><div class="tablewrap"><table><thead><tr><th>Player</th><th>Bid</th><th>Tricks</th><th>Points</th><th>New total</th></tr></thead><tbody>${state.players.map((p,i)=>{let points=h.tricks[i]+(h.tricks[i]===h.bids[i]?10:0);return `<tr><td>${dot(i)}${esc(p)}</td><td>${h.bids[i]}${i===h.dealer&&h.asterisk?'*':''}</td><td>${h.tricks[i]}</td><td><b>+${points}</b></td><td>${before[i]+points}</td></tr>`}).join('')}</tbody></table></div><p class="muted">Exact bid earns a 10-point bonus, plus one point per trick won.</p><div class="row">${btn('← Edit tricks',"state.phase='tricks';save();render()",'secondary')}${btn('Confirm scores & continue →','confirmHand()')}</div></div>`}function confirmHand(){let h=current();h.confirmed=true;state.handIndex++;if(state.round<state.start-1){state.round++;newHand()}else{state.phase='intermission'}save();render()}function standings(){
+ const {scores,suits}=scoreData();
+ return state.roster.map((player,id)=>({player,id})).filter(({id})=>suits[id].size)
+  .sort((a,b)=>scores[b.id]-scores[a.id])
+  .map(({player,id},i)=>`<div class="scoreline"><span>${i===0?'🏆 ':''}${esc(player.name)} <small class="muted">· ${suits[id].size} ${suits[id].size===1?'suit':'suits'}</small></span><strong>${scores[id]}</strong></div>`).join('');
+}
+let rosterDraft;
+function editRoster(){
+ if(state.phase!=='intermission'||state.suit===4)return;
+ initRoster();
+ rosterDraft=JSON.parse(JSON.stringify(state.nextRoster??{
+  roster:state.roster,ids:state.activeIds,start:state.start,dealerId:state.activeIds[dealer()]
+ }));
+ renderRoster();
+}
+function renderRoster(){
+ const {roster,ids,start,dealerId}=rosterDraft;
+ const available=roster.map((player,id)=>({player,id})).filter(({id})=>!ids.includes(id));
+ const max=Math.floor(52/ids.length);
+ $('app').innerHTML=`<div class="card"><h2>Players for the next suit</h2>
+ <p class="muted">Seating order · clockwise</p>
+ ${ids.map((id,i)=>`<div class="scoreline"><span>${esc(roster[id].name)}</span><div class="row">
+ ${i>0?`<button class="secondary" aria-label="Move ${esc(roster[id].name)} up" onclick="moveRosterPlayer(${i},-1)">↑</button>`:''}
+ ${i<ids.length-1?`<button class="secondary" aria-label="Move ${esc(roster[id].name)} down" onclick="moveRosterPlayer(${i},1)">↓</button>`:''}
+ ${ids.length>2?btn('Sit out',`changeRosterPlayer(${id},false)`,'secondary'):''}</div></div>`).join('')}
+ ${available.length&&ids.length<20?`<div class="field"><label for="returningPlayer">Bring back a player</label><div class="row"><select id="returningPlayer">${available.map(({player,id})=>`<option value="${id}">${esc(player.name)}</option>`).join('')}</select>${btn('Bring back', "changeRosterPlayer(Number($('returningPlayer').value),true)",'secondary')}</div></div>`:''}
+ ${ids.length<20?`<div class="field"><label for="newPlayer">Add a new player</label><div class="row"><input id="newPlayer" placeholder="Name" onkeydown="if(event.key==='Enter')addRosterPlayer()">${btn('Add player','addRosterPlayer()','secondary')}</div></div>`:''}
+ <div class="field"><label for="nextDealer">Who deals first?</label><select id="nextDealer" onchange="rosterDraft.dealerId=Number(this.value)">${ids.map(id=>`<option value="${id}" ${id===dealerId?'selected':''}>${esc(roster[id].name)}</option>`).join('')}</select></div>
+ <div class="field"><label for="nextCards">Cards in the first hand</label><select id="nextCards" onchange="rosterDraft.start=Number(this.value)">${Array.from({length:max},(_,i)=>`<option value="${i+1}" ${i+1===start?'selected':''}>${i+1}</option>`).join('')}</select><div class="subtle">Up to ${max} cards per player with this seating.</div></div>
+ <div class="row">${btn('Save players','saveRoster()')}${btn('Cancel','render()','secondary')}</div></div>`;
+}
+function moveRosterPlayer(index,offset){
+ const {ids}=rosterDraft;
+ [ids[index],ids[index+offset]]=[ids[index+offset],ids[index]];
+ renderRoster();
+}
+function changeRosterPlayer(id,add){
+ const {ids}=rosterDraft;
+ if(add)ids.push(id);
+ else ids.splice(ids.indexOf(id),1);
+ if(!ids.includes(rosterDraft.dealerId))rosterDraft.dealerId=ids[0];
+ rosterDraft.start=Math.min(rosterDraft.start,Math.floor(52/ids.length));
+ renderRoster();
+}
+function addRosterPlayer(){
+ const name=$('newPlayer').value.trim();
+ if(!name){$('newPlayer').focus();return}
+ const id=rosterDraft.roster.length;
+ rosterDraft.roster.push({name,color:PALETTE[id%PALETTE.length]});
+ changeRosterPlayer(id,true);
+}
+function saveRoster(){
+ state.nextRoster=rosterDraft;
+ save();render();
+}
+function applyRoster(){
+ const next=state.nextRoster;
+ if(!next)return;
+ state.originalIds??=state.activeIds.slice();
+ state.roster=next.roster;
+ state.activeIds=next.ids;
+ state.players=next.ids.map(id=>next.roster[id].name);
+ state.colors=next.ids.map(id=>next.roster[id].color);
+ state.start=next.start;
+ state.firstDealer=next.ids.indexOf(next.dealerId);
+ state.dealerAnchor=state.handIndex;
+ delete state.nextRoster;
+}
+function intermission(){let next=state.suit+1;$('app').innerHTML=`<div class="card"><span class="pill">${SUITS[state.suit][0]} complete</span><h2 style="margin-top:16px">Current standings</h2>${standings()}<div class="note">${next<5?`Next up: <b>${SUITS[next][1]} ${SUITS[next][0]}</b>`:'You have completed all five rounds!'}</div><div class="row">${next<5?btn('Continue to '+SUITS[next][0]+' →','continueSuit()'):''}${next<5?btn(state.nextRoster?'Edit saved players':'Edit players','editRoster()','secondary'):''}${next<4?btn('Skip to No Trump →','skipToNoTrump()','secondary'):''}${btn('End game','endGame()','secondary')}</div></div>`}function continueSuit(){continueSuitSilently();save();render()}function skipToNoTrump(){if(state.phase!=='intermission'||state.suit>=4)return;state.suit=4;state.round=0;applyRoster();newHand();save();render()}function endGame(){state.phase='finished';save();render()}function finished(){$('app').innerHTML=`<div class="card"><span class="pill">Game complete</span><h2 style="margin-top:16px">Final standings 🎉</h2>${standings()}<div class="row" style="margin-top:20px">${btn('Save scorecard as PNG','exportScorecard()')}${btn('View scorecard',"view='score';render()")}${btn('New game','resetGame()','secondary')}</div></div>`}function scorecard(){
+ const {rows,scores}=scoreData();
+ let suit=-1;
+ const body=rows.map(h=>{
+  const heading=h.suit===suit?'':`<tr class="sectionrow"><td colspan="${state.roster.length+1}"><span class="score-suit score-suit-${h.suit}">${SUITS[h.suit][1]}</span><span class="score-suit-name">${SUITS[h.suit][0]}</span></td></tr>`;
+  suit=h.suit;
+  return heading+`<tr><td>${h.cards} cards</td>${h.cells.map(cell=>cell?`<td>${cell.bid} – <b>${cell.score}</b></td>`:'<td>/</td>').join('')}</tr>`;
+ }).join('');
+ $('app').innerHTML=`<div class="card"><h2>Standings</h2>${standings()}</div><div class="card"><div class="row" style="justify-content:space-between"><div><h2>Live scorecard</h2><p class="muted">Each cell shows bid – cumulative score. * marks a dealer asterisk.</p></div><div class="row">${btn('Save scorecard as PNG','exportScorecard()')}${btn('← Back to game',"view='play';render()",'secondary')}</div></div><div class="tablewrap"><table><thead><tr><th>Hand</th>${state.roster.map(player=>`<th>${esc(player.name)}</th>`).join('')}</tr></thead><tbody>${body}<tr class="sectionrow"><td>Total</td>${scores.map(score=>`<td>${score}</td>`).join('')}</tr></tbody></table></div>${rows.length?'':'<p class="muted">No hands scored yet.</p>'}</div>`;
+}
+function drawDutchRibbon(ctx,width){
  ctx.save();ctx.beginPath();ctx.rect(0,0,width,102);ctx.clip();
  ctx.translate(width-35,16);ctx.rotate(Math.PI/4);
  const colors=['#AE1C28','#FFFFFF','#21468B'];
@@ -218,7 +383,7 @@ function showExportDetails(){
 }
 function downloadScorecard(details={}){
  closeExportDialog();
- const rows=state.history.filter(h=>h.confirmed),n=state.players.length;
+ const {rows,scores}=scoreData(),n=state.roster.length;
  if(!rows.length){alert('Score a hand before saving the scorecard.');return}
  const width=Math.max(900,260+n*190),pad=38,left=165,col=(width-left-pad)/n;
  const dateLabel=details.date?new Date(details.date+'T12:00:00').toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}):'';
@@ -227,7 +392,7 @@ function downloadScorecard(details={}){
  let lastSuit=-1,bodyH=0;
  for(const h of rows){if(h.suit!==lastSuit){bodyH+=groupH;lastSuit=h.suit}bodyH+=lineH}
  const height=headerH+bodyH+footerH;
- const c=document.createElement('canvas'),scale=2;c.width=width*scale;c.height=height*scale;
+ const c=document.createElement('canvas'),scale=Math.min(2,8192/Math.max(width,height),Math.sqrt(16777216/(width*height)));c.width=width*scale;c.height=height*scale;
  const ctx=c.getContext('2d');ctx.scale(scale,scale);
  ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
  ctx.fillStyle='#142D4E';ctx.fillRect(0,0,width,102);
@@ -245,19 +410,23 @@ function downloadScorecard(details={}){
  if(detailText){ctx.save();ctx.fillStyle='#314F73';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText(detailText,width/2,133);ctx.restore()}
  ctx.fillStyle='#142D4E';ctx.font='bold 16px system-ui';ctx.fillText('HAND',pad,headerH-20);
  const truncate=(str,max)=>{while(ctx.measureText(str).width>max&&str.length>1)str=str.slice(0,-2)+'…';return str};
- for(let i=0;i<n;i++){ctx.fillStyle=colorFor(i);ctx.fillRect(left+i*col+8,headerH-37,9,18);ctx.fillStyle='#142D4E';ctx.fillText(truncate(state.players[i],col-30),left+i*col+23,headerH-20)}
- let y=headerH,scores=state.players.map(()=>0);lastSuit=-1;
+ for(let i=0;i<n;i++){ctx.fillStyle=state.roster[i].color;ctx.fillRect(left+i*col+8,headerH-37,9,18);ctx.fillStyle='#142D4E';ctx.fillText(truncate(state.roster[i].name,col-30),left+i*col+23,headerH-20)}
+ let y=headerH;lastSuit=-1;
  for(const h of rows){
   if(h.suit!==lastSuit){ctx.fillStyle='#DCE7F4';ctx.fillRect(0,y,width,groupH);ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';drawSuitLabel(ctx,h.suit,pad,y,groupH);y+=groupH;lastSuit=h.suit}
   ctx.fillStyle=(Math.round((y-headerH)/lineH)%2===0)?'#ffffff':'#F7F9FC';ctx.fillRect(0,y,width,lineH);
   ctx.strokeStyle='#D6E1EE';ctx.beginPath();ctx.moveTo(pad,y+lineH);ctx.lineTo(width-pad,y+lineH);ctx.stroke();
   ctx.fillStyle='#234B75';ctx.font='16px system-ui';ctx.fillText(h.cards+' '+(h.cards===1?'card':'cards'),pad,y+33);
-  for(let i=0;i<n;i++){scores[i]+=h.tricks[i]+(h.tricks[i]===h.bids[i]?10:0);ctx.fillStyle=colorFor(i);ctx.font='bold 19px system-ui';ctx.fillText(h.bids[i]+(i===h.dealer&&h.asterisk?'*':'')+'  –  '+scores[i],left+i*col+8,y+33)}
+h.cells.forEach((cell,i)=>{
+ ctx.fillStyle=state.roster[i].color;
+ ctx.font='bold 19px system-ui';
+ ctx.fillText(cell?cell.bid+'  –  '+cell.score:'/',left+i*col+8,y+33);
+});
   y+=lineH;
  }
  ctx.fillStyle='#142D4E';ctx.fillRect(0,y,width,footerH);
  ctx.fillStyle='#fff';ctx.font='bold 19px system-ui';ctx.fillText('TOTAL',pad,y+36);
- for(let i=0;i<n;i++){ctx.fillStyle=colorFor(i);ctx.fillText(String(scores[i]),left+i*col+8,y+36);}
+ for(let i=0;i<n;i++){ctx.fillStyle=state.roster[i].color;ctx.fillText(String(scores[i]),left+i*col+8,y+36);}
  
  c.toBlob(blob=>{if(!blob){alert('Unable to save image.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='boerenbridge-scorecard.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000)},'image/png');
 }
@@ -328,6 +497,6 @@ function runSimulation(scope){
  if(scope==='game'&&state.phase==='intermission'&&state.suit===4)state.phase='finished';
  view=scope==='game'?'score':'play';save();render();
 }
-function continueSuitSilently(){state.suit++;state.round=0;newHand()}
+function continueSuitSilently(){state.suit++;state.round=0;applyRoster();newHand()}
 function resetGame(){if(state&&!confirm('Start a new game? This will erase the current saved game.'))return;state=null;localStorage.removeItem(KEY);view='play';render()}render();
 </script><script>if ('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script><script>window.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{const s=document.getElementById('splash');if(s){s.classList.add('hide');setTimeout(()=>s.remove(),550)}},1500)})</script></body></html>
