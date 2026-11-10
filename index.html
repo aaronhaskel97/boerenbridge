@@ -309,7 +309,7 @@ function undoLastBid(){let h=current();h.step=state.players.length-1;h.bids[h.de
  const showSuitCounts=new Set(suits.filter(played=>played.size).map(played=>played.size)).size>1;
  return state.roster.map((player,id)=>({player,id})).filter(({id})=>suits[id].size)
   .sort((a,b)=>scores[b.id]-scores[a.id])
-  .map(({player,id},i)=>`<div class="scoreline"><span>${i===0?'🏆 ':''}${esc(player.name)}${showSuitCounts?` <small class="muted">· ${suits[id].size} ${suits[id].size===1?'suit':'suits'}</small>`:''}</span><strong>${scores[id]}</strong></div>`).join('');
+  .map(({player,id},i)=>`<div class="scoreline"><span>${['🏆 ','🥈 ','🥉 '][i]||''}${esc(player.name)}${showSuitCounts?` <small class="muted">· ${suits[id].size} ${suits[id].size===1?'suit':'suits'}</small>`:''}</span><strong>${scores[id]}</strong></div>`).join('');
 }
 let rosterDraft;
 function editRoster(){
@@ -450,7 +450,16 @@ function showExportDetails(){
  el.querySelector('.install-panel').innerHTML=`<h2 id="exportTitle">Scorecard details</h2><label for="exportDate">Date</label><input type="date" id="exportDate" value="${localDate}"><label for="exportLocation">Location (optional)</label><input type="text" id="exportLocation" maxlength="90" placeholder="e.g., Brooklyn, NY"><div class="row"><button onclick="downloadScorecard({date:document.getElementById('exportDate').value,location:document.getElementById('exportLocation').value.trim()})">Download scorecard</button><button class="secondary" onclick="exportScorecard()">Back</button></div>`;
  el.querySelector('#exportLocation')?.focus();
 }
+function drawScoreTrophy(ctx,x,y,place){
+ const colors=['#E3B341','#AEBBCC','#BA8050'];
+ ctx.save();ctx.translate(x,y);ctx.fillStyle=colors[place];ctx.strokeStyle=colors[place];ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(4,0);ctx.lineTo(16,0);ctx.lineTo(15,8);ctx.quadraticCurveTo(10,15,5,8);ctx.closePath();ctx.fill();
+ ctx.beginPath();ctx.moveTo(4,2);ctx.lineTo(0,2);ctx.quadraticCurveTo(0,9,6,9);
+ ctx.moveTo(16,2);ctx.lineTo(20,2);ctx.quadraticCurveTo(20,9,14,9);ctx.stroke();
+ ctx.fillRect(9,11,2,6);ctx.fillRect(5,17,10,3);ctx.restore();
+}
 function downloadScorecard(details={}){
+
  closeExportDialog();
  const {rows,scores}=scoreData(),n=state.roster.length;
  if(!rows.length){alert('Score a hand before saving the scorecard.');return}
@@ -480,20 +489,28 @@ function downloadScorecard(details={}){
 if(hasDetails){
  ctx.save();
  const right=width-150,available=right-(bx+capsuleW+24);
- let text=[locationLabel,dateLabel].filter(Boolean).join(', '),size=26;
- ctx.font=`italic ${size}px Georgia,"Times New Roman",serif`;
- while(size>18&&ctx.measureText(text).width>available){
-  size--;
+ let location=locationLabel,size=26;
+ const dateText=dateLabel?(location?', ':'')+dateLabel:'';
+ const measure=()=>{
   ctx.font=`italic ${size}px Georgia,"Times New Roman",serif`;
+  const locationWidth=ctx.measureText(location).width;
+  ctx.font=`${size}px Georgia,"Times New Roman",serif`;
+  return {locationWidth,total:locationWidth+ctx.measureText(dateText).width};
+ };
+ while(size>18&&measure().total>available)size--;
+ if(measure().total>available&&location){
+  let shortened=location;
+  do{
+   shortened=shortened.slice(0,-1);
+   location=shortened+'…';
+  }while(shortened.length&&measure().total>available);
  }
- if(ctx.measureText(text).width>available){
-  let location=locationLabel;
-  const suffix=dateLabel?', '+dateLabel:'';
-  while(location.length&&ctx.measureText(location+'…'+suffix).width>available)location=location.slice(0,-1);
-  text=location+'…'+suffix;
- }
- ctx.fillStyle='#FFFFFF';ctx.textAlign='right';ctx.textBaseline='middle';
- ctx.fillText(text,right,51);
+ const metrics=measure(),x=right-metrics.total;
+ ctx.fillStyle='#FFFFFF';ctx.textAlign='left';ctx.textBaseline='middle';
+ ctx.font=`italic ${size}px Georgia,"Times New Roman",serif`;
+ ctx.fillText(location,x,51);
+ ctx.font=`${size}px Georgia,"Times New Roman",serif`;
+ ctx.fillText(dateText,x+metrics.locationWidth,51);
  ctx.restore();
 }
  ctx.fillStyle='#142D4E';ctx.font='bold 16px system-ui';ctx.fillText('HAND',pad,headerH-20);
@@ -514,7 +531,12 @@ h.cells.forEach((cell,i)=>{
  }
  ctx.fillStyle='#142D4E';ctx.fillRect(0,y,width,footerH);
  ctx.fillStyle='#fff';ctx.font='bold 19px system-ui';ctx.fillText('TOTAL',pad,y+36);
- for(let i=0;i<n;i++){ctx.fillStyle=state.roster[i].color;ctx.fillText(String(scores[i]),left+i*col+8,y+36);}
+ const podium=state.roster.map((_,id)=>id).filter(id=>rows.some(h=>h.cells[id])).sort((a,b)=>scores[b]-scores[a]).slice(0,3);
+ for(let i=0;i<n;i++){
+  const place=podium.indexOf(i),x=left+i*col+8;
+  if(place>=0)drawScoreTrophy(ctx,x,y+17,place);
+  ctx.fillStyle=state.roster[i].color;ctx.fillText(String(scores[i]),x+(place>=0?29:0),y+36);
+ }
  
  c.toBlob(blob=>{if(!blob){alert('Unable to save image.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='boerenbridge-scorecard.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000)},'image/png');
 }
