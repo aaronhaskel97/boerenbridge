@@ -179,7 +179,11 @@ header>div:nth-child(2){display:block;min-width:0;max-width:100%}
 .intermission-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:560px}
 .intermission-action-group{display:flex;flex-direction:column;gap:10px;min-width:0}
 .intermission-action-group button{width:100%;height:auto;min-height:48px}
+#newPlayer{flex:1 1 260px;min-width:0;min-height:48px;font-size:17px;padding:13px 15px}
+.roster-circle{margin:28px auto 34px}
+.roster-circle .seat-name{font-size:14px}
 </style>
+
 
 </head><body><header><div class="dutch-ribbon" aria-label="Dutch flag"></div><div><div class="brand-header"><h1><span class="brand-title">BoerenBridge</span></h1><div class="brand-bottom"><span class="brand-subtitle">Farmer’s Bridge</span><div class="brand-suits brand-suits-box"><span>♠</span><span>♥</span><span>♦</span><span>♣</span><span class="nt-logo"><img class="no-trump-symbol" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20transform%3D%22translate(32%2032)%20scale(.83)%20translate(-32%20-32)%22%20fill%3D%22%23939DAD%22%20d%3D%22M32%204%20C26%2014%208%2027%208%2040%20C8%2051%2021%2055%2029%2045%20L26%2058%20H38%20L35%2045%20C43%2055%2056%2051%2056%2040%20C56%2027%2038%2014%2032%204%20Z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2047%20L47%2017%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="No Trump"></span></div></div></div></div><div class="topnav" id="nav"></div></header><main class="shell" id="app"></main><div id="splash" aria-label="BoerenBridge is opening"><img src="./icon-192.png" alt="BoerenBridge logo"><div class="splash-name">BoerenBridge</div></div><script>
 const SUITS=[['Spades','♠'],['Hearts','♥'],['Diamonds','♦'],['Clubs','♣'],['No Trump',`<img class="no-trump-symbol" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20transform%3D%22translate(32%2032)%20scale(.83)%20translate(-32%20-32)%22%20fill%3D%22%23101820%22%20d%3D%22M32%204%20C26%2014%208%2027%208%2040%20C8%2051%2021%2055%2029%2045%20L26%2058%20H38%20L35%2045%20C43%2055%2056%2051%2056%2040%20C56%2027%2038%2014%2032%204%20Z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2047%20L47%2017%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="No Trump">`]];const KEY='farmers-bridge-v3';let state;try{state=JSON.parse(localStorage.getItem(KEY))}catch{};if(!state||!state.players)state=null;let view='play',error='';const PALETTE=['#2878C8','#E05B4D','#1B9467','#A15BC5','#DB941B','#D05293','#168B9C','#6D7792','#835C3B','#738C25'];const colorFor=i=>(state?.colors?.[i]||PALETTE[i%PALETTE.length]);const dot=i=>``;const seatTint=i=>`background:${colorFor(i)}18;border-color:${colorFor(i)}88;`;const $=id=>document.getElementById(id),save=()=>localStorage.setItem(KEY,JSON.stringify(state)),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function btn(label,fn,cls=''){return `<button class="${cls}" onclick="${fn}">${label}</button>`}function hand(){return state.start-state.round}function dealer(){
@@ -230,7 +234,14 @@ function selectSetupOption(wheel,index,scroll=false){
   if(input.value===value)return;
   input.value=value;
   if(input.id==='nextCards')rosterDraft.start=Number(value);
-  else if(input.id==='nextDealer')rosterDraft.dealerId=rosterDraft.ids[Number(value)];
+  else if(input.id==='nextDealer'){
+   rosterDraft.dealerId=rosterDraft.ids[Number(value)];
+   document.querySelectorAll('#rosterCircle .seat').forEach((seat,i)=>{
+    const isDealer=Number(seat.dataset.playerId)===rosterDraft.dealerId;
+    seat.classList.toggle('dealer-seat',isDealer);
+    seat.querySelector('.seat-detail').textContent=(i+1)+(isDealer?' · Dealer':'');
+   });
+  }
   else if(input.id!=='firstDealer')updateSetup();
 }
 function initSetupPickers(){
@@ -303,12 +314,16 @@ function renderRoster(){
  const max=Math.floor(52/ids.length);
  $('app').innerHTML=`<div class="card"><h2>Players for the next suit</h2>
  <p class="muted">Seating order · clockwise</p>
+ <div id="rosterCircle" class="seating-circle live-circle roster-circle" aria-label="Seating order clockwise">
+ <div class="table-center">TABLE</div>
+ ${ids.map((id,i)=>`<div class="seat ${id===dealerId?'dealer-seat':''}" data-player-id="${id}" style="${seatPosition(i,ids.length)};background:${roster[id].color}18;border-color:${roster[id].color}88"><span class="seat-name">${esc(roster[id].name)}</span><span class="seat-detail">${i+1}${id===dealerId?' · Dealer':''}</span></div>`).join('')}
+ </div>
  ${ids.map((id,i)=>`<div class="scoreline"><span>${esc(roster[id].name)}</span><div class="row">
  ${i>0?`<button class="secondary" aria-label="Move ${esc(roster[id].name)} up" onclick="moveRosterPlayer(${i},-1)">↑</button>`:''}
  ${i<ids.length-1?`<button class="secondary" aria-label="Move ${esc(roster[id].name)} down" onclick="moveRosterPlayer(${i},1)">↓</button>`:''}
  ${ids.length>2?btn('Sit out',`changeRosterPlayer(${id},false)`,'secondary'):''}</div></div>`).join('')}
  ${available.length&&ids.length<20?`<div class="field"><label for="returningPlayer">Bring back a player</label><div class="row"><select id="returningPlayer">${available.map(({player,id})=>`<option value="${id}">${esc(player.name)}</option>`).join('')}</select>${btn('Bring back', "changeRosterPlayer(Number($('returningPlayer').value),true)",'secondary')}</div></div>`:''}
- ${ids.length<20?`<div class="field"><label for="newPlayer">Add a new player</label><div class="row"><input id="newPlayer" placeholder="Name" onkeydown="if(event.key==='Enter')addRosterPlayer()">${btn('Add player','addRosterPlayer()','secondary')}</div></div>`:''}
+ ${ids.length<20?`<div class="field"><label for="newPlayer">Add a new player</label><div class="row"><input id="newPlayer" type="text" placeholder="Player name" onkeydown="if(event.key==='Enter')addRosterPlayer()">${btn('Add player','addRosterPlayer()','secondary')}</div></div>`:''}
 <div class="row">
 <div class="field"><label>Who deals first?</label>${setupPicker('nextDealer','Who deals first?',0,ids.length-1,ids.indexOf(dealerId))}</div>
 <div class="field"><label>Cards in the first hand</label>${setupPicker('nextCards','Cards in the first hand',1,max,start)}</div>
@@ -428,10 +443,10 @@ function downloadScorecard(details={}){
  const {rows,scores}=scoreData(),n=state.roster.length;
  if(!rows.length){alert('Score a hand before saving the scorecard.');return}
  const width=Math.max(900,260+n*190),pad=38,left=165,col=(width-left-pad)/n;
- const dateLabel=details.date?new Date(details.date+'T12:00:00').toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}):'';
+ const dateLabel=details.date?new Date(details.date+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'numeric',day:'numeric'}):'';
  const locationLabel=(details.location||'').trim();
  const hasDetails=Boolean(dateLabel||locationLabel);
- const lineH=52,groupH=42,headerH=hasDetails?246:154,footerH=85;
+ const lineH=52,groupH=42,headerH=154,footerH=85;
  let lastSuit=-1,bodyH=0;
  for(const h of rows){if(h.suit!==lastSuit){bodyH+=groupH;lastSuit=h.suit}bodyH+=lineH}
  const height=headerH+bodyH+footerH;
@@ -452,33 +467,21 @@ function downloadScorecard(details={}){
  ctx.fillStyle='#EAF0F7';ctx.fillRect(0,102,width,headerH-102);
 if(hasDetails){
  ctx.save();
- ctx.fillStyle='#F7F9FC';ctx.fillRect(0,102,width,92);
- ctx.textAlign='left';
- const locationX=dateLabel?pad+250:pad;
- if(dateLabel){
-  ctx.fillStyle='#61748B';ctx.font='bold 11px system-ui';ctx.fillText('DATE',pad,127);
-  ctx.fillStyle='#142D4E';ctx.font='600 18px system-ui';ctx.fillText(dateLabel,pad,154);
+ const right=width-150,available=right-(bx+capsuleW+24);
+ let text=[locationLabel,dateLabel].filter(Boolean).join(', '),size=26;
+ ctx.font=`italic ${size}px Georgia,"Times New Roman",serif`;
+ while(size>18&&ctx.measureText(text).width>available){
+  size--;
+  ctx.font=`italic ${size}px Georgia,"Times New Roman",serif`;
  }
- if(locationLabel){
-  ctx.fillStyle='#61748B';ctx.font='bold 11px system-ui';ctx.fillText('LOCATION',locationX,127);
-  ctx.fillStyle='#142D4E';ctx.font='600 18px system-ui';
-  const available=width-locationX-pad;
-  const lines=[''];
-  for(const character of locationLabel){
-   const line=lines.length-1;
-   if(ctx.measureText(lines[line]+character).width>available)lines.push(character);
-   else lines[line]+=character;
-  }
-  lines.slice(0,2).forEach((line,i)=>{
-   let text=line.trim();
-   if(i===1&&lines.length>2){
-    while(text.length&&ctx.measureText(text+'…').width>available)text=text.slice(0,-1);
-    text+='…';
-   }
-   ctx.fillText(text,locationX,154+i*23);
-  });
+ if(ctx.measureText(text).width>available){
+  let location=locationLabel;
+  const suffix=dateLabel?', '+dateLabel:'';
+  while(location.length&&ctx.measureText(location+'…'+suffix).width>available)location=location.slice(0,-1);
+  text=location+'…'+suffix;
  }
- ctx.strokeStyle='#D6E1EE';ctx.beginPath();ctx.moveTo(pad,194);ctx.lineTo(width-pad,194);ctx.stroke();
+ ctx.fillStyle='#FFFFFF';ctx.textAlign='right';ctx.textBaseline='middle';
+ ctx.fillText(text,right,51);
  ctx.restore();
 }
  ctx.fillStyle='#142D4E';ctx.font='bold 16px system-ui';ctx.fillText('HAND',pad,headerH-20);
