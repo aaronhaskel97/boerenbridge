@@ -184,7 +184,12 @@ header>div:nth-child(2){display:block;min-width:0;max-width:100%}
 .roster-circle .seat-name{font-size:14px}
 .setup-start{display:grid;place-items:center;width:100%;margin-top:16px;padding-top:16px;border-top:1px solid #D6E1EE}
 .setup-start button{display:block;width:min(100%,320px);min-height:52px;margin:0 auto;text-align:center;font-size:18px;border-radius:12px}
+.roster-deck{width:min(100%,274px);margin:16px 0}
+.roster-deck .setup-wheels{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+.roster-deck .setup-wheels label{min-height:2.6em}
+.roster-deck .note{margin-bottom:0}
 </style>
+
 
 
 </head><body><header><div class="dutch-ribbon" aria-label="Dutch flag"></div><div><div class="brand-header"><h1><span class="brand-title">BoerenBridge</span></h1><div class="brand-bottom"><span class="brand-subtitle">Farmer’s Bridge</span><div class="brand-suits brand-suits-box"><span>♠</span><span>♥</span><span>♦</span><span>♣</span><span class="nt-logo"><img class="no-trump-symbol" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20transform%3D%22translate(32%2032)%20scale(.83)%20translate(-32%20-32)%22%20fill%3D%22%23939DAD%22%20d%3D%22M32%204%20C26%2014%208%2027%208%2040%20C8%2051%2021%2055%2029%2045%20L26%2058%20H38%20L35%2045%20C43%2055%2056%2051%2056%2040%20C56%2027%2038%2014%2032%204%20Z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%2F%3E%3Cpath%20d%3D%22M17%2047%20L47%2017%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" alt="No Trump"></span></div></div></div></div><div class="topnav" id="nav"></div></header><main class="shell" id="app"></main><div id="splash" aria-label="BoerenBridge is opening"><img src="./icon-192.png" alt="BoerenBridge logo"><div class="splash-name">BoerenBridge</div></div><script>
@@ -357,11 +362,11 @@ function renderRoster(){
  ${ids.length>2?btn('Sit out',`changeRosterPlayer(${id},false)`,'secondary'):''}</div></div>`).join('')}
  ${available.length&&ids.length<20?`<div class="field"><label for="returningPlayer">Bring back a player</label><div class="row"><select id="returningPlayer">${available.map(({player,id})=>`<option value="${id}">${esc(player.name)}</option>`).join('')}</select>${btn('Bring back', "changeRosterPlayer(Number($('returningPlayer').value),true)",'secondary')}</div></div>`:''}
  ${ids.length<20?`<div class="field"><label for="newPlayer">Add a new player</label><div class="row"><input id="newPlayer" type="text" placeholder="Player name" onkeydown="if(event.key==='Enter')addRosterPlayer()">${btn('Add player','addRosterPlayer()','secondary')}</div></div>`:''}
-<div class="row">
+<div class="roster-deck"><div class="setup-wheels">
 <div class="field"><label>Who deals first?</label>${setupPicker('nextDealer','Who deals first?',0,ids.length-1,ids.indexOf(dealerId))}</div>
 <div class="field"><label>Cards in the first hand</label>${setupPicker('nextCards','Cards in the first hand',1,max,start)}</div>
 </div><div class="subtle">Up to ${max} cards per player with this seating.</div>
- <div id="nextDeckAdvice" class="note" aria-live="polite">${deckAdvice(ids.length,start)}</div>
+ <div id="nextDeckAdvice" class="note" aria-live="polite">${deckAdvice(ids.length,start)}</div></div>
  <div class="row">${btn('Save players','saveRoster()')}${btn('Cancel','render()','secondary')}</div></div>`;
  $('nextDealerWheel').innerHTML=setupOptions(ids.map(id=>roster[id].name),'nextDealer');
  initSetupPickers();
