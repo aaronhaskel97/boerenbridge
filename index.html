@@ -467,7 +467,7 @@ function downloadScorecard(details={}){
  const dateLabel=details.date?new Date(details.date+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'numeric',day:'numeric'}):'';
  const locationLabel=(details.location||'').trim();
  const hasDetails=Boolean(dateLabel||locationLabel);
- const lineH=56,groupH=34,headerH=102,footerH=85;
+ const lineH=42,groupH=34,headerH=102,footerH=85;
  let lastSuit=-1,bodyH=0;
  for(const h of rows){if(h.suit!==lastSuit){bodyH+=groupH;lastSuit=h.suit}bodyH+=lineH}
  const height=headerH+bodyH+footerH;
@@ -523,16 +523,21 @@ const playerLabel=(i,x,y,color)=>{
 };
  let y=headerH;lastSuit=-1;
  for(const h of rows){
-  if(h.suit!==lastSuit){ctx.fillStyle='#DCE7F4';ctx.fillRect(0,y,width,groupH);ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';drawSuitLabel(ctx,h.suit,pad,y,groupH);y+=groupH;lastSuit=h.suit}
+if(h.suit!==lastSuit){
+ ctx.fillStyle='#DCE7F4';ctx.fillRect(0,y,width,groupH);
+ ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';
+ drawSuitLabel(ctx,h.suit,pad,y,groupH);
+ state.roster.forEach((_,i)=>playerLabel(i,left+i*col+8,y+22,'#314F73'));
+ y+=groupH;lastSuit=h.suit;
+}
   ctx.fillStyle=(Math.round((y-headerH)/lineH)%2===0)?'#ffffff':'#F7F9FC';ctx.fillRect(0,y,width,lineH);
   ctx.strokeStyle='#D6E1EE';ctx.beginPath();ctx.moveTo(pad,y+lineH);ctx.lineTo(width-pad,y+lineH);ctx.stroke();
-  ctx.fillStyle='#234B75';ctx.font='16px system-ui';ctx.fillText(h.cards+' '+(h.cards===1?'card':'cards'),pad,y+33);
+  ctx.fillStyle='#234B75';ctx.font='16px system-ui';ctx.fillText(h.cards+' '+(h.cards===1?'card':'cards'),pad,y+27);
 h.cells.forEach((cell,i)=>{
 const x=left+i*col+8;
-playerLabel(i,x,y+19,'#314F73');
 ctx.fillStyle=cell?state.roster[i].color:'#61748B';
 ctx.font='bold 19px system-ui';
-ctx.fillText(cell?cell.bid+'  –  '+cell.score:'/',x,y+43);
+ctx.fillText(cell?cell.bid+'  –  '+cell.score:'/',x,y+27);
 });
   y+=lineH;
  }
