@@ -548,7 +548,7 @@ const playerLabel=(i,x,y,color)=>{
 if(h.suit!==lastSuit){
  ctx.fillStyle='#DCE7F4';ctx.fillRect(0,y,width,groupH);
  ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';
- drawSuitLabel(ctx,h.suit,pad,y,groupH);
+ drawSuitLabel(ctx,h.suit,8,y,groupH);
  state.roster.forEach((_,i)=>playerLabel(i,left+i*col+8,y+22,'#314F73'));
  y+=groupH;lastSuit=h.suit;
 }
