@@ -467,7 +467,7 @@ function downloadScorecard(details={}){
  const dateLabel=details.date?new Date(details.date+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'numeric',day:'numeric'}):'';
  const locationLabel=(details.location||'').trim();
  const hasDetails=Boolean(dateLabel||locationLabel);
- const lineH=52,groupH=42,headerH=154,footerH=85;
+ const lineH=56,groupH=34,headerH=102,footerH=85;
  let lastSuit=-1,bodyH=0;
  for(const h of rows){if(h.suit!==lastSuit){bodyH+=groupH;lastSuit=h.suit}bodyH+=lineH}
  const height=headerH+bodyH+footerH;
@@ -485,7 +485,6 @@ function downloadScorecard(details={}){
  ctx.beginPath();ctx.moveTo(bx+r,by);ctx.lineTo(bx+capsuleW-r,by);ctx.quadraticCurveTo(bx+capsuleW,by,bx+capsuleW,by+r);ctx.lineTo(bx+capsuleW,by+bh-r);ctx.quadraticCurveTo(bx+capsuleW,by+bh,bx+capsuleW-r,by+bh);ctx.lineTo(bx+r,by+bh);ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-r);ctx.lineTo(bx,by+r);ctx.quadraticCurveTo(bx,by,bx+r,by);ctx.stroke();ctx.restore();
  drawSuitRow(ctx,suitX,73,suitSize,suitStep);
   drawDutchRibbon(ctx,width);
- ctx.fillStyle='#EAF0F7';ctx.fillRect(0,102,width,headerH-102);
 if(hasDetails){
  ctx.save();
  const right=width-150,available=right-(bx+capsuleW+24);
@@ -513,9 +512,15 @@ if(hasDetails){
  ctx.fillText(dateText,x+metrics.locationWidth,51);
  ctx.restore();
 }
- ctx.fillStyle='#142D4E';ctx.font='bold 16px system-ui';ctx.fillText('HAND',pad,headerH-20);
- const truncate=(str,max)=>{while(ctx.measureText(str).width>max&&str.length>1)str=str.slice(0,-2)+'…';return str};
- for(let i=0;i<n;i++){ctx.fillStyle=state.roster[i].color;ctx.fillRect(left+i*col+8,headerH-37,9,18);ctx.fillStyle='#142D4E';ctx.fillText(truncate(state.roster[i].name,col-30),left+i*col+23,headerH-20)}
+const playerLabel=(i,x,y,color)=>{
+ ctx.font='600 13px system-ui';ctx.fillStyle=color;
+ let name=state.roster[i].name;
+ if(ctx.measureText(name).width>col-16){
+  while(name.length&&ctx.measureText(name+'…').width>col-16)name=name.slice(0,-1);
+  name+='…';
+ }
+ ctx.fillText(name,x,y);
+};
  let y=headerH;lastSuit=-1;
  for(const h of rows){
   if(h.suit!==lastSuit){ctx.fillStyle='#DCE7F4';ctx.fillRect(0,y,width,groupH);ctx.fillStyle='#142D4E';ctx.font='bold 18px system-ui';drawSuitLabel(ctx,h.suit,pad,y,groupH);y+=groupH;lastSuit=h.suit}
@@ -523,9 +528,11 @@ if(hasDetails){
   ctx.strokeStyle='#D6E1EE';ctx.beginPath();ctx.moveTo(pad,y+lineH);ctx.lineTo(width-pad,y+lineH);ctx.stroke();
   ctx.fillStyle='#234B75';ctx.font='16px system-ui';ctx.fillText(h.cards+' '+(h.cards===1?'card':'cards'),pad,y+33);
 h.cells.forEach((cell,i)=>{
- ctx.fillStyle=state.roster[i].color;
- ctx.font='bold 19px system-ui';
- ctx.fillText(cell?cell.bid+'  –  '+cell.score:'/',left+i*col+8,y+33);
+const x=left+i*col+8;
+playerLabel(i,x,y+19,'#314F73');
+ctx.fillStyle=cell?state.roster[i].color:'#61748B';
+ctx.font='bold 19px system-ui';
+ctx.fillText(cell?cell.bid+'  –  '+cell.score:'/',x,y+43);
 });
   y+=lineH;
  }
@@ -534,8 +541,10 @@ h.cells.forEach((cell,i)=>{
  const podium=state.roster.map((_,id)=>id).filter(id=>rows.some(h=>h.cells[id])).sort((a,b)=>scores[b]-scores[a]).slice(0,3);
  for(let i=0;i<n;i++){
   const place=podium.indexOf(i),x=left+i*col+8;
-  if(place>=0)drawScoreTrophy(ctx,x,y+17,place);
-  ctx.fillStyle=state.roster[i].color;ctx.fillText(String(scores[i]),x+(place>=0?29:0),y+36);
+playerLabel(i,x,y+23,'#D5E3F3');
+if(place>=0)drawScoreTrophy(ctx,x,y+34,place);
+ctx.font='bold 19px system-ui';ctx.fillStyle=state.roster[i].color;
+ctx.fillText(String(scores[i]),x+(place>=0?29:0),y+53);
  }
  
  c.toBlob(blob=>{if(!blob){alert('Unable to save image.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='boerenbridge-scorecard.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000)},'image/png');
@@ -576,12 +585,22 @@ function randomInt(max){return Math.floor(Math.random()*(max+1))}
 function simulateHand(h){
  const n=state.players.length;
  h.bids=Array(n).fill(null);h.tricks=Array(n).fill(0);h.asterisk=false;
- const biddingOrder=order();
- for(const i of biddingOrder){
-  const choices=Array.from({length:h.cards+1},(_,j)=>j).filter(v=>i!==h.dealer||h.cards===1||h.bids.reduce((sum,b)=>sum+(b??0),0)+v!==h.cards);
-  h.bids[i]=choices[randomInt(choices.length-1)];
- }
  for(let t=0;t<h.cards;t++)h.tricks[randomInt(n-1)]++;
+ let totalBids=0;
+ for(const i of order()){
+  const actual=h.tricks[i];
+  const forbidden=i===h.dealer&&h.cards!==1?h.cards-totalBids:-1;
+  const choices=Array.from({length:h.cards+1},(_,bid)=>bid).filter(bid=>bid!==forbidden);
+  if(choices.includes(actual)&&Math.random()<0.55){
+   h.bids[i]=actual;
+  }else{
+   const misses=choices.filter(bid=>bid!==actual);
+   const distance=Math.min(...misses.map(bid=>Math.abs(bid-actual)));
+   const nearest=misses.filter(bid=>Math.abs(bid-actual)===distance);
+   h.bids[i]=nearest[randomInt(nearest.length-1)];
+  }
+  totalBids+=h.bids[i];
+ }
  h.step=n;h.confirmed=true;
 }
 function runSimulation(scope){
