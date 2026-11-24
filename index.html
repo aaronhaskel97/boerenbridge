@@ -164,6 +164,7 @@ header>div:nth-child(2){display:block;min-width:0;max-width:100%}
 .setup-wheels,.setup-controls .note{width:min(100%,416px);margin-inline:auto}
 .setup-wheels .field{margin:0;text-align:center;min-width:0}
 .setup-wheels label{font-size:13px}
+.setup-card .setup-wheels label{font-size:20px}
 .setup-controls .note{margin-block:12px;font-size:14px}
 @media(max-width:900px) and (min-width:721px){
  .setup-layout{grid-template-columns:minmax(260px,1fr) minmax(0,1fr);gap:18px}
@@ -186,7 +187,7 @@ header>div:nth-child(2){display:block;min-width:0;max-width:100%}
 .setup-start button{display:block;width:min(100%,320px);min-height:52px;margin:0 auto;text-align:center;font-size:18px;border-radius:12px}
 .roster-deck{width:min(100%,274px);margin:16px 0}
 .roster-deck .setup-wheels{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
-.roster-deck .setup-wheels label{min-height:2.6em}
+.roster-deck .setup-wheels label{min-height:2.6em;font-size:20px}
 .roster-deck .note{margin-bottom:0}
 </style>
 
@@ -363,8 +364,8 @@ function renderRoster(){
  ${available.length&&ids.length<20?`<div class="field"><label for="returningPlayer">Bring back a player</label><div class="row"><select id="returningPlayer">${available.map(({player,id})=>`<option value="${id}">${esc(player.name)}</option>`).join('')}</select>${btn('Bring back', "changeRosterPlayer(Number($('returningPlayer').value),true)",'secondary')}</div></div>`:''}
  ${ids.length<20?`<div class="field"><label for="newPlayer">Add a new player</label><div class="row"><input id="newPlayer" type="text" placeholder="Player name" onkeydown="if(event.key==='Enter')addRosterPlayer()">${btn('Add player','addRosterPlayer()','secondary')}</div></div>`:''}
 <div class="roster-deck"><div class="setup-wheels">
-<div class="field"><label>Who deals first?</label>${setupPicker('nextDealer','Who deals first?',0,ids.length-1,ids.indexOf(dealerId))}</div>
-<div class="field"><label>Cards in the first hand</label>${setupPicker('nextCards','Cards in the first hand',1,max,start)}</div>
+<div class="field"><label>Dealer</label>${setupPicker('nextDealer','Who deals first?',0,ids.length-1,ids.indexOf(dealerId))}</div>
+<div class="field"><label>Hands</label>${setupPicker('nextCards','Cards in the first hand',1,max,start)}</div>
 </div><div class="subtle">Up to ${max} cards per player with this seating.</div>
  <div id="nextDeckAdvice" class="note" aria-live="polite">${deckAdvice(ids.length,start)}</div></div>
  <div class="row">${btn('Save players','saveRoster()')}${btn('Cancel','render()','secondary')}</div></div>`;
